@@ -24,4 +24,4 @@ KL = np.column_stack((K, L))
 #          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
 ##########################################################################
 model = sm.OLS(Y, sm.add_constant(KL))  # 用add_constant加入常数项
-print(model.fit().summary())
+print(model.fit().summary(xname=['const', 'lnK', 'lnL']))  # 用自己的名称命名常数和各个解释变量
