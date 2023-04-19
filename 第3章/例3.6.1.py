@@ -17,17 +17,20 @@ df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 # 用.astype(float)将EXCEL文件中的字符型转浮点型
 D1 = pd.DataFrame(data={"city": [1 for i in range(1, df.shape[0])]})  # 农村居民=1
 D0 = pd.DataFrame(data={"city": [0 for i in range(1, df.shape[0])]})  # 城市居民=0
-D = np.row_stack((D1, D0))
-
-Y = np.row_stack((df.iloc[:, 1].astype(float), df.iloc[:, 5].astype(float)))
-print(Y)
-X1 = np.row_stack((df.iloc[:, 2].astype(float), df.iloc[:, 6].astype(float)))
-X2 = np.row_stack((df.iloc[:, 3].astype(float), df.iloc[:, 7].astype(float)))
-X3 = np.row_stack((df.iloc[:, 4].astype(float), df.iloc[:, 8].astype(float)))
-X1X2X3 = np.column_stack((D, X1, np.dot(D, X1), X2, np.dot(D, X2), X3, np.dot(D, X3)))
+D = pd.concat([D1, D0]).reset_index(drop=True)  # drop=True 排序后去掉原来索引
+# 最后一行是平均值所以不用，df.iloc[:-1,
+Y = pd.concat([df.iloc[:-1, 1].astype(float), df.iloc[:-1, 5].astype(float)]).reset_index(drop=True)
+X1 = pd.concat([df.iloc[:-1, 2].astype(float), df.iloc[:-1, 6].astype(float)]).reset_index(drop=True)
+X2 = pd.concat([df.iloc[:-1, 3].astype(float), df.iloc[:-1, 7].astype(float)]).reset_index(drop=True)
+X3 = pd.concat([df.iloc[:-1, 4].astype(float), df.iloc[:-1, 8].astype(float)]).reset_index(drop=True)
+DX1 = D.mul(X1, axis=0)
+DX2 = D.mul(X2, axis=0)
+DX3 = D.mul(X3, axis=0)
+# print(D.mul(X1, axis=0))
+X = np.column_stack((D, X1, DX1, X2, DX2, X3, DX3))
 ##########################################################################
 # 进行多元线性回归，可以替换Y和X
 #          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
 ##########################################################################
-model = sm.OLS(Y, sm.add_constant(X1X2X3))  # 用add_constant加入常数项
+model = sm.OLS(Y, sm.add_constant(X))  # 用add_constant加入常数项
 print(model.fit().summary(xname=['const', 'D', 'X1', 'D*X1', 'X2', 'D*X2', 'X3', 'D*X3']))  # 用自己的名称命名常数和各个解释变量
