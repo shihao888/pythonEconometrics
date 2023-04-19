@@ -18,12 +18,14 @@ df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 D1 = pd.DataFrame(data={"city": [1 for i in range(1, df.shape[0])]})  # 农村居民=1
 D0 = pd.DataFrame(data={"city": [0 for i in range(1, df.shape[0])]})  # 城市居民=0
 D = pd.concat([D1, D0]).reset_index(drop=True)  # drop=True 排序后去掉原来索引
-# 最后一行是平均值所以不用，df.iloc[:-1,
+# D1 D0 D都为DataFrame
+# 最后一行是平均值所以舍去不用，因此df.iloc[:-1,中用-1
+# df.iloc[:-1, 1].astype(float) 产生Series
 Y = pd.concat([df.iloc[:-1, 1].astype(float), df.iloc[:-1, 5].astype(float)]).reset_index(drop=True)
 X1 = pd.concat([df.iloc[:-1, 2].astype(float), df.iloc[:-1, 6].astype(float)]).reset_index(drop=True)
 X2 = pd.concat([df.iloc[:-1, 3].astype(float), df.iloc[:-1, 7].astype(float)]).reset_index(drop=True)
 X3 = pd.concat([df.iloc[:-1, 4].astype(float), df.iloc[:-1, 8].astype(float)]).reset_index(drop=True)
-DX1 = D.mul(X1, axis=0)
+DX1 = D.mul(X1, axis=0)  # DataFrame 乘以 Series
 DX2 = D.mul(X2, axis=0)
 DX3 = D.mul(X3, axis=0)
 # print(D.mul(X1, axis=0))
