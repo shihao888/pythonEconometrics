@@ -58,6 +58,8 @@ def e(p, x, y):  # p:param参数
 s = least_squares(e, init_param, args=(xdata, Ydata), verbose=2)
 print(s.x)
 opt_param = s.x  # 得到了拟合参数
+print(f'估计参数c={opt_param[0]:.6f} alpha={opt_param[1]:.6f} beta={opt_param[2]:.6f}')
+
 
 # 将得到的拟合参数代入计算
 e = []
@@ -81,9 +83,7 @@ colors = ['red', 'blue', 'green', 'cyan', 'magenta', 'yellow', 'black', 'cyan']
 def Fitting_drawing(flag, Y_Actual, Y_Virtual, Err):  # i,Y,Y_Fit,e
 
     M1 = max(Y_Actual)
-    print(M1)
     M2 = max(Y_Virtual)
-    print(M2)
     Y1_MAX = max(M1, M2)
 
     M1 = min(Y_Actual)
