@@ -57,6 +57,7 @@ import pandas as pd
 import itertools as it
 import random
 
+# df中所有的数据都取对数
 df = df.iloc[1:, 1:].astype(float).apply(np.log)
 print(df.columns)
 variate = list(df.columns)  # 获取列名
