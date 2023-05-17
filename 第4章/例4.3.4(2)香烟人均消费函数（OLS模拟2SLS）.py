@@ -19,21 +19,32 @@ Y = df.iloc[:, 2].astype(float).apply(np.log)
 P = df.iloc[:, 3].astype(float).apply(np.log)
 tax = df.iloc[:, 4].astype(float)
 taxes = df.iloc[:, 5].astype(float)
-print(len(P))
-print(len(tax))
-
+Z = np.column_stack((Y, tax))  # 注意这里把Y也放入
 ##########################################################################
 # 进行多元线性回归，可以替换Y和X
 #          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
 ##########################################################################
-model = sm.OLS(P, sm.add_constant(tax))  # 用add_constant加入常数项
-fit = model.fit()
-print(fit.summary())
-p_hat = fit.predict(sm.add_constant(tax))
+model1 = sm.OLS(P, sm.add_constant(Z))  # 用add_constant加入常数项
+fit1 = model1.fit()
+# print(fit1.summary())
+p_hat = fit1.predict(sm.add_constant(Z))  # predict与这个p_hat = fit1.fittedvalues同等效果
 
 X = np.column_stack((Y, p_hat))  # np.column_stack需要至少2个参数
-model = sm.OLS(Q, sm.add_constant(X))  # 用add_constant加入常数项
-fit = model.fit(cov_type='HC1', use_t=True)
-print(fit.summary())
+model2 = sm.OLS(Q, sm.add_constant(X))  # 用add_constant加入常数项
+fit2 = model2.fit()
+print(fit2.summary())
 
+Z = np.column_stack((Y, tax, taxes))  # 注意这里把Y也放入
+##########################################################################
+# 进行多元线性回归，可以替换Y和X
+#          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
+##########################################################################
+model2 = sm.OLS(P, sm.add_constant(Z))  # 用add_constant加入常数项
+fit2 = model2.fit()
+# print(fit2.summary())
+p_hat = fit2.predict(sm.add_constant(Z))  # predict与这个p_hat = fit2.fittedvalues同等效果
 
+X = np.column_stack((Y, p_hat))  # np.column_stack需要至少2个参数
+model2 = sm.OLS(Q, sm.add_constant(X))  # 用add_constant加入常数项
+fit2 = model2.fit()
+print(fit2.summary())
