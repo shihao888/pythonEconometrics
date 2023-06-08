@@ -2,6 +2,7 @@
 # Author: 史浩 浙江金融职业学院
 # --------------------------------------------------------
 # coding=utf-8
+import 第5章.LM_TEST as mylmtest
 import pandas as pd
 import numpy as np
 import statsmodels.api as sm
@@ -16,7 +17,7 @@ df = df.dropna()
 #              0      1       2      3      4      5    6
 df.columns = ['year', 'GDP', 'CONS', 'CPI', 'TAX', 'X', 'Y']
 
-df.sort_values(by=['year'], ascending=True, inplace=True)  # 时间序列按升序排
+df.sort_values(by=['year'], ascending=False, inplace=True)  # 时间序列按降序排
 df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 
 # 定义变量
@@ -57,14 +58,20 @@ adf_result = adfuller(Y, regression='n')  # 生成adf检验结果, c ct ctt n
 print('The ADF Statistic: %f' % adf_result[0])
 print('The p value: %f' % adf_result[1])
 
-
+# 模型3：常数项+时间趋势项+Y滞后项
 #  CTRL+SHIFT+I to check the function help
 Y_d1 = Y - Y.shift(-1)
 Y_lag1 = Y.shift(-1)
 Y_d1_lag1 = Y_d1.shift(-1)
 
 X = np.column_stack((T, Y_lag1, Y_d1_lag1))
-X = X.dropna()
+# 对整个数组删除有NaN值的每一行
+X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
+Y_d1 = Y_d1.iloc[:-2]
+if len(Y_d1) != len(X):
+    print(f'Y数据长度={len(Y_d1)}')
+    print(f'X数据长度={len(X)}')
+    exit('回归数据Y和X长度不匹配')
 ##########################################################################
 # 进行多元线性回归，可以替换Y和X
 #          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
@@ -73,10 +80,26 @@ model = sm.OLS(Y_d1, sm.add_constant(X))  # 用add_constant加入常数项
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d1', yname='Y_d1',
                   xname=['const', 'T', 'Y_lag1', 'Y_d1_lag1']))
+print('model3 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
+mylmtest.LM_TEST(Y_d1, X)
 
+# 模型2：常数项+Y滞后项
+X = np.column_stack((Y_lag1, Y_d1_lag1))
+X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
+model = sm.OLS(Y_d1, sm.add_constant(X))  # 用add_constant加入常数项
+fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
+print(fit.summary(title='Y_d1', yname='Y_d1',
+                  xname=['const', 'Y_lag1', 'Y_d1_lag1']))
+print('model2 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
+mylmtest.LM_TEST(Y_d1, X)
 
-# 添加一项滞后项，再回归，再检验
-# lnY_d1 = lnY.shift(-1)
-# model = sm.OLS(lnY, sm.add_constant(lnX))  # 用add_constant加入常数项
-# fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
-# print(fit.summary(yname='lnY', xname=['const', 'lnX']))
+# 模型1：没有常数项和时间趋势项，仅有Y滞后项
+X = np.column_stack((Y_lag1, Y_d1_lag1))
+X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
+model = sm.OLS(Y_d1, X)
+fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
+print(fit.summary(title='Y_d1', yname='Y_d1',
+                  xname=['Y_lag1', 'Y_d1_lag1']))
+print('model1 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
+mylmtest.LM_TEST(Y_d1, X)
+
