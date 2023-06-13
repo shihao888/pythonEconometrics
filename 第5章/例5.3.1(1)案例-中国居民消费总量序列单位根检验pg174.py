@@ -37,8 +37,8 @@ lb_test = sm.stats.acorr_ljungbox(Y, lags=10)
 print('The Ljung-Box test statistic:')
 print(lb_test)
 
-T = df.iloc[:, 0].astype(int)
-Y = df.iloc[:, 6].astype(float)
+T = df.iloc[:, 0].astype(int) - 1978
+Y = df.iloc[:, 6].astype(np.float64)
 
 # ADF检验 平稳性检验
 # H0：具有单位根，属于非平稳序列。
