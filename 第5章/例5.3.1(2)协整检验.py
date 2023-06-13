@@ -13,7 +13,7 @@ df = df.dropna()
 #              0      1       2      3      4      5    6
 df.columns = ['year', 'GDP', 'CONS', 'CPI', 'TAX', 'X', 'Y']
 
-df.sort_values(by=['year'], ascending=False, inplace=True)  # 时间序列按降序排
+df.sort_values(by=['year'], ascending=True, inplace=True)  # 时间序列按升序排
 df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 # print(df)
 
@@ -25,7 +25,7 @@ lnX = df.iloc[:, 5].astype(float).apply(np.log)
 # 进行多元线性回归，可以替换Y和X
 #          OLS：  Y          = beta0 + beta1*X1 + beta2*X2
 ##########################################################################
-model = sm.OLS(Y, sm.add_constant(X))  # 用add_constant加入常数项
+model = sm.OLS(lnY, sm.add_constant(lnX))  # 用add_constant加入常数项
 # 异方差稳健的标准误 ：
 #     HC0:White（1980）提出的异方差稳健的标准误
 #     HC1:Mackinon and White（1985）提出的异方差稳健的标准误
@@ -34,3 +34,6 @@ model = sm.OLS(Y, sm.add_constant(X))  # 用add_constant加入常数项
 #     HAC:Newey-West标准误（异方差自相关稳健的标准误）
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary())
+
+import 第5章.LM_TEST as mylmtest
+mylmtest.LM_TEST(lnY, lnX)

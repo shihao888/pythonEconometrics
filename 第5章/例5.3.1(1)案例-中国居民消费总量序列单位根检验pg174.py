@@ -81,7 +81,8 @@ fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d1', yname='Y_d1',
                   xname=['const', 'T', 'Y_lag1', 'Y_d1_lag1']))
 print('model3 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d1, X)
+Y = Y.iloc[:-2]
+mylmtest.LM_TEST(Y, Y_d1)
 
 # 模型2：常数项+Y滞后项
 X = np.column_stack((Y_lag1, Y_d1_lag1))

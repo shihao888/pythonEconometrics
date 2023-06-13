@@ -34,7 +34,9 @@ def LM_TEST(Y, X):
     model = sm.OLS(e_hat_t, sm.add_constant(Q))
     fit = model.fit()
     # 自由度为1的卡方分布
-    print(f'LM({1})={(fit.nobs - 1) * fit.rsquared} chi2_table_value={chi2_table(1, 0.05)}')
+    print(fit.summary())
+    print(f'fit.rsquared={fit.rsquared}')
+    print(f'LM({1})={fit.rsquared/((fit.nobs - 1)  * fit.rsquared)} chi2_table_value={chi2_table(1, 0.05)}')
 
     # 二阶滞后
     e_hat_t_minus_2 = e_hat_t_minus_1.shift(-1)
@@ -48,7 +50,8 @@ def LM_TEST(Y, X):
     model = sm.OLS(e_hat_t, sm.add_constant(R))
     fit = model.fit()
     # 自由度为2的卡方分布
-    print(f'LM({2})={(fit.nobs - 2)  * fit.rsquared} chi2_table_value={chi2_table(2, 0.05)}')
+    print(f'fit.rsquared={fit.rsquared}')
+    print(f'LM({2})={fit.rsquared/((fit.nobs - 2)  * fit.rsquared)} chi2_table_value={chi2_table(2, 0.05)}')
 
     # 三阶滞后
     e_hat_t_minus_3 = e_hat_t_minus_2.shift(-1)
@@ -63,4 +66,5 @@ def LM_TEST(Y, X):
     model = sm.OLS(e_hat_t, sm.add_constant(R))
     fit = model.fit(use_t=True)
     # 自由度为3的卡方分布
-    print(f'LM({3})={(fit.nobs - 3) * fit.rsquared} chi2_table_value={chi2_table(3, 0.05)}')
+    print(f'fit.rsquared={fit.rsquared}')
+    print(f'LM({3})={fit.rsquared/((fit.nobs - 3)  * fit.rsquared)} chi2_table_value={chi2_table(3, 0.05)}')
