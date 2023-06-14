@@ -24,39 +24,39 @@ df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 # 用.astype(float)将EXCEL文件中的字符型转浮点型
 Y = df.iloc[:, 6].astype(float)
 
-# LM检验自相关性
-# acorr_lm将会包含四个变量：LM统计量、LM统计量的p值、F统计量与F统计量的p值
-# Conduct the lm test
-print('='*50)
-print('自相关检验 H0:不存在自相关')
-lm_test = sms.acorr_lm(Y, nlags=1)  # fit.model.exog 就是 lnX
-print('Lagrange multiplier statistic: %f' % lm_test[0])
-print('The p value: %f' % lm_test[1])
-
-lb_test = sm.stats.acorr_ljungbox(Y, lags=10)
-print('The Ljung-Box test statistic:')
-print(lb_test)
+# # LM检验自相关性
+# # acorr_lm将会包含四个变量：LM统计量、LM统计量的p值、F统计量与F统计量的p值
+# # Conduct the lm test
+# print('='*50)
+# print('自相关检验 H0:不存在自相关')
+# lm_test = sms.acorr_lm(Y, nlags=1)  # fit.model.exog 就是 lnX
+# print('Lagrange multiplier statistic: %f' % lm_test[0])
+# print('The p value: %f' % lm_test[1])
+#
+# lb_test = sm.stats.acorr_ljungbox(Y, lags=10)
+# print('The Ljung-Box test statistic:')
+# print(lb_test)
 
 T = df.iloc[:, 0].astype(int) - 1978
 Y = df.iloc[:, 6].astype(np.float64)
 
-# ADF检验 平稳性检验
-# H0：具有单位根，属于非平稳序列。
-from statsmodels.tsa.stattools import adfuller
-
-'''
-regression : {"c","ct","ctt","n"}
-        Constant and trend order to include in regression.
-* "c" : constant only (default).
-* "ct" : constant and trend.
-* "ctt" : constant, and linear and quadratic trend.
-* "n" : no constant, no trend.
-'''
-print('='*50)
-print('平稳性检验 H0：具有单位根，非平稳序列')
-adf_result = adfuller(Y, regression='n')  # 生成adf检验结果, c ct ctt n
-print('The ADF Statistic: %f' % adf_result[0])
-print('The p value: %f' % adf_result[1])
+# # ADF检验 平稳性检验
+# # H0：具有单位根，属于非平稳序列。
+# from statsmodels.tsa.stattools import adfuller
+#
+# '''
+# regression : {"c","ct","ctt","n"}
+#         Constant and trend order to include in regression.
+# * "c" : constant only (default).
+# * "ct" : constant and trend.
+# * "ctt" : constant, and linear and quadratic trend.
+# * "n" : no constant, no trend.
+# '''
+# print('='*50)
+# print('平稳性检验 H0：具有单位根，非平稳序列')
+# adf_result = adfuller(Y, regression='n')  # 生成adf检验结果, c ct ctt n
+# print('The ADF Statistic: %f' % adf_result[0])
+# print('The p value: %f' % adf_result[1])
 
 # 模型3：常数项+时间趋势项+Y滞后项
 #  CTRL+SHIFT+I to check the function help
@@ -67,7 +67,7 @@ Y_d1_lag1 = Y_d1.shift(-1)
 X = np.column_stack((T, Y_lag1, Y_d1_lag1))
 # 对整个数组删除有NaN值的每一行
 X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
-Y_d1 = Y_d1.iloc[:-2]
+Y_d1 = Y_d1[:-2]
 if len(Y_d1) != len(X):
     print(f'Y数据长度={len(Y_d1)}')
     print(f'X数据长度={len(X)}')
@@ -78,18 +78,17 @@ if len(Y_d1) != len(X):
 ##########################################################################
 model = sm.OLS(Y_d1, sm.add_constant(X))  # 用add_constant加入常数项
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
-print(fit.summary(title='Y_d1', yname='Y_d1',
+print(fit.summary(title='模型3', yname='Y_d1',
                   xname=['const', 'T', 'Y_lag1', 'Y_d1_lag1']))
 print('model3 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
-Y = Y.iloc[:-2]
-mylmtest.LM_TEST(Y, Y_d1)
+mylmtest.LM_TEST(Y_d1, X)
 
 # 模型2：常数项+Y滞后项
 X = np.column_stack((Y_lag1, Y_d1_lag1))
 X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
 model = sm.OLS(Y_d1, sm.add_constant(X))  # 用add_constant加入常数项
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
-print(fit.summary(title='Y_d1', yname='Y_d1',
+print(fit.summary(title='模型2', yname='Y_d1',
                   xname=['const', 'Y_lag1', 'Y_d1_lag1']))
 print('model2 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
 mylmtest.LM_TEST(Y_d1, X)
@@ -99,8 +98,8 @@ X = np.column_stack((Y_lag1, Y_d1_lag1))
 X = X[~np.any(np.isnan(X), axis=1)]  # 1 按行； 0 按列
 model = sm.OLS(Y_d1, X)
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
-print(fit.summary(title='Y_d1', yname='Y_d1',
+print(fit.summary(title='模型1', yname='Y_d1',
                   xname=['Y_lag1', 'Y_d1_lag1']))
 print('model1 H0: 存在单位根。请查看Y_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d1, X)
+mylmtest.LM_TEST(Y_d1, X, nocons=True)
 

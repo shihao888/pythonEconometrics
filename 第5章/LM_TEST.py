@@ -19,52 +19,65 @@ def chi2_table(dof, p=0.05):
      
 
 # H0: 不存在序列相关性
-def LM_TEST(Y, X):
+def LM_TEST(Y, X, nocons=False):
     print('LMTEST H0: 不存在序列相关性')
-    model = sm.OLS(Y, sm.add_constant(X))
+    X = X[~np.any(np.isnan(X), axis=1)]
+
+    if len(Y) != len(X):
+        print(f'Y数据长度={len(Y)}')
+        print(f'X数据长度={len(X)}')
+        exit('回归数据Y和X长度不匹配')
+    ###########################################
+    # 主回归：得到残差
+    ###########################################
+    if nocons:
+        model = sm.OLS(Y, X)
+    else:
+        model = sm.OLS(Y, sm.add_constant(X))
     fit = model.fit()
     e_hat_t = fit.resid
-
+    ###########################################
     # 一阶滞后
+    ###########################################
     e_hat_t_minus_1 = e_hat_t.shift(-1)
-    e_hat_t_minus_1 = e_hat_t_minus_1.iloc[:-1]  # 丢弃最后一行N/A
-    e_hat_t = e_hat_t.iloc[:-1]  # 为保持数据一致，也丢弃最后一行
-    X = X[:-1]  # 为保持数据一致，也丢弃最后一行
+    # 用0填充NaN
+    e_hat_t_minus_1 = np.nan_to_num(e_hat_t_minus_1, nan=0.0)
+
     Q = np.column_stack((X, e_hat_t_minus_1))
-    model = sm.OLS(e_hat_t, sm.add_constant(Q))
+    if nocons:
+        model = sm.OLS(e_hat_t, Q)
+    else:
+        model = sm.OLS(e_hat_t, sm.add_constant(Q))
     fit = model.fit()
     # 自由度为1的卡方分布
-    print(fit.summary())
-    print(f'fit.rsquared={fit.rsquared}')
-    print(f'LM({1})={fit.rsquared/((fit.nobs - 1)  * fit.rsquared)} chi2_table_value={chi2_table(1, 0.05)}')
-
+    print(f'LM({1})={fit.nobs * fit.rsquared}')
+    ###########################################
     # 二阶滞后
-    e_hat_t_minus_2 = e_hat_t_minus_1.shift(-1)
-    e_hat_t_minus_2 = e_hat_t_minus_2.iloc[:-1]  # 之前丢过一行，在之前基础上再多丢一行
-
-    e_hat_t = e_hat_t.iloc[:-1]  # 为保持数据一致，也丢弃最后两行(之前丢过一行，在之前基础上再多丢一行)
-    e_hat_t_minus_1 = e_hat_t_minus_1.iloc[:-1]
-    X = X[:-1]
+    ###########################################
+    e_hat_t_minus_2 = pd.Series(e_hat_t_minus_1).shift(-1)
+    # 用0填充NaN
+    e_hat_t_minus_2 = np.nan_to_num(e_hat_t_minus_2, nan=0.0)
 
     R = np.column_stack((X, e_hat_t_minus_1, e_hat_t_minus_2))
-    model = sm.OLS(e_hat_t, sm.add_constant(R))
+    if nocons:
+        model = sm.OLS(e_hat_t, R)
+    else:
+        model = sm.OLS(e_hat_t, sm.add_constant(R))
     fit = model.fit()
     # 自由度为2的卡方分布
-    print(f'fit.rsquared={fit.rsquared}')
-    print(f'LM({2})={fit.rsquared/((fit.nobs - 2)  * fit.rsquared)} chi2_table_value={chi2_table(2, 0.05)}')
-
+    print(f'LM({2})={fit.nobs * fit.rsquared}')
+    ###########################################
     # 三阶滞后
-    e_hat_t_minus_3 = e_hat_t_minus_2.shift(-1)
-    e_hat_t_minus_3 = e_hat_t_minus_3.iloc[:-1]  # 之前丢过一行，在之前基础上再多丢一行
+    ###########################################
+    e_hat_t_minus_3 = pd.Series(e_hat_t_minus_2).shift(-1)
+    # 用0填充NaN
+    e_hat_t_minus_3 = np.nan_to_num(e_hat_t_minus_3, nan=0.0)
 
-    e_hat_t = e_hat_t.iloc[:-1]  # 为保持数据一致，也丢弃最后两行(之前丢过一行，在之前基础上再多丢一行)
-    e_hat_t_minus_1 = e_hat_t_minus_1.iloc[:-1]
-    e_hat_t_minus_2 = e_hat_t_minus_2.iloc[:-1]
-    X = X[:-1]
-
-    R = np.column_stack((X, e_hat_t_minus_1, e_hat_t_minus_2, e_hat_t_minus_3))
-    model = sm.OLS(e_hat_t, sm.add_constant(R))
+    S = np.column_stack((X, e_hat_t_minus_1, e_hat_t_minus_2, e_hat_t_minus_3))
+    if nocons:
+        model = sm.OLS(e_hat_t, S)
+    else:
+        model = sm.OLS(e_hat_t, sm.add_constant(S))
     fit = model.fit(use_t=True)
     # 自由度为3的卡方分布
-    print(f'fit.rsquared={fit.rsquared}')
-    print(f'LM({3})={fit.rsquared/((fit.nobs - 3)  * fit.rsquared)} chi2_table_value={chi2_table(3, 0.05)}')
+    print(f'LM({3})={fit.nobs * fit.rsquared}')
