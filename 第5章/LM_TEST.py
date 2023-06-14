@@ -21,8 +21,6 @@ def chi2_table(dof, p=0.05):
 # H0: 不存在序列相关性
 def LM_TEST(Y, X, nocons=False):
     print('LMTEST H0: 不存在序列相关性')
-    X = X[~np.any(np.isnan(X), axis=1)]
-
     if len(Y) != len(X):
         print(f'Y数据长度={len(Y)}')
         print(f'X数据长度={len(X)}')

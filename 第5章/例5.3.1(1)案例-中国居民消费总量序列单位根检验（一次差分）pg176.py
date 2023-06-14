@@ -22,7 +22,7 @@ df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 
 # 定义变量
 # 用.astype(float)将EXCEL文件中的字符型转浮点型
-T = df.iloc[:, 0].astype(int)
+T = df.iloc[:, 0].astype(int) - 1978
 Y = df.iloc[:, 6].astype(float)
 
 
@@ -70,5 +70,5 @@ fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d2', yname='Y_d2',
                   xname=['Y_d1_lag1', 'Y_d2_lag1']))
 print('model1 H0: 存在单位根。请查看Y_d1_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d2, X)
+mylmtest.LM_TEST(Y_d2, X, nocons=True)
 
