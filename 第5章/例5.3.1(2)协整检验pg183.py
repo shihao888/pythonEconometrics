@@ -13,7 +13,7 @@ df = df.dropna()
 #              0      1       2      3      4      5    6
 df.columns = ['year', 'GDP', 'CONS', 'CPI', 'TAX', 'X', 'Y']
 
-df.sort_values(by=['year'], ascending=True, inplace=True)  # 时间序列按升序排
+df.sort_values(by=['year'], ascending=False, inplace=True)  # 时间序列按降序排
 df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 # print(df)
 
@@ -34,6 +34,10 @@ model = sm.OLS(lnY, sm.add_constant(lnX))  # 用add_constant加入常数项
 #     HAC:Newey-West标准误（异方差自相关稳健的标准误）
 fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary())
+e = fit.resid
+# 确定滞后阶数
+import 第5章.ADF_TEST as myadftest
+myadftest.ADF_LM_TEST_lags(e, MODEL=1, adf_lags=4)
 
-import 第5章.LM_TEST as mylmtest
-mylmtest.LM_TEST(lnY, lnX)
+
+
