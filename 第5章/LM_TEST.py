@@ -82,6 +82,50 @@ def LM_TEST_lag3(Y, X, nocons=False):
     v = fit.nobs * fit.rsquared
     print(f'LM({3})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
 
+# 回归方程是Y和X，可以是高阶
+def LM_TEST_lagsN(Y, X, nocons, lags=3):
+    '''
+    是LM_TEST_lags3的升级版，可以做超过3阶
+    :param Y:
+    :param X:
+    :param nocons:
+    :param lags:
+    :return:
+    '''
+    print('LMTEST H0: 不存在序列相关性')
+    if len(Y) != len(X):
+        print(f'Y数据长度={len(Y)}')
+        print(f'X数据长度={len(X)}')
+        exit('回归数据Y和X长度不匹配')
+    ###########################################
+    # 主回归：得到残差
+    ###########################################
+    if nocons == False:
+        X = sm.add_constant(X)
+
+    model = sm.OLS(Y, X)
+    fit = model.fit()
+    e_hat_t = fit.resid
+
+    e_hat_t_series = [i for i in range(lags + 1)]
+    e_hat_t_series[0] = e_hat_t
+
+
+    for i in range(1, lags + 1):
+        print(f'# {i}阶滞后')
+
+        e_hat_t_series[i] = pd.Series(e_hat_t_series[i - 1]).shift(-1)
+        # 用0填充NaN
+        e_hat_t_series[i] = np.nan_to_num(e_hat_t_series[i], nan=0.0)
+        S = X
+        for j in range(1, i + 1):
+            S = np.column_stack((S, e_hat_t_series[j]))
+        model = sm.OLS(e_hat_t, S)
+        fit = model.fit()
+
+        v = fit.nobs * fit.rsquared
+        print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
+    print('###########################################')
 
 def ADF1_LM_TEST_lags(Y, MODEL=3, lags=3):
     '''
@@ -164,40 +208,5 @@ def ADF1_LM_TEST_lags(Y, MODEL=3, lags=3):
         print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
     print('###########################################')
 
-# 回归方程是Y和X，可以是高阶
-def LM_TEST_lags(Y, X, nocons, lags=3):
-    print('LMTEST H0: 不存在序列相关性')
-    if len(Y) != len(X):
-        print(f'Y数据长度={len(Y)}')
-        print(f'X数据长度={len(X)}')
-        exit('回归数据Y和X长度不匹配')
-    ###########################################
-    # 主回归：得到残差
-    ###########################################
-    if nocons == False:
-        X = sm.add_constant(X)
 
-    model = sm.OLS(Y, X)
-    fit = model.fit()
-    e_hat_t = fit.resid
-
-    e_hat_t_series = [i for i in range(lags + 1)]
-    e_hat_t_series[0] = e_hat_t
-
-
-    for i in range(1, lags + 1):
-        print(f'# {i}阶滞后')
-
-        e_hat_t_series[i] = pd.Series(e_hat_t_series[i - 1]).shift(-1)
-        # 用0填充NaN
-        e_hat_t_series[i] = np.nan_to_num(e_hat_t_series[i], nan=0.0)
-        S = X
-        for j in range(1, i + 1):
-            S = np.column_stack((S, e_hat_t_series[j]))
-        model = sm.OLS(e_hat_t, S)
-        fit = model.fit()
-
-        v = fit.nobs * fit.rsquared
-        print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
-    print('###########################################')
 
