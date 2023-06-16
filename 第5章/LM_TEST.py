@@ -17,8 +17,8 @@ from scipy import stats
 def chi2_table(dof, p=0.05):
     return sp.stats.chi2.ppf(1 - p, df=dof)
 
-
-def LM_TEST(Y, X, nocons=False):
+# 回归方程是Y和X 最多3阶
+def LM_TEST_lag3(Y, X, nocons=False):
     print('LMTEST H0: 不存在序列相关性')
     if len(Y) != len(X):
         print(f'Y数据长度={len(Y)}')
@@ -47,7 +47,8 @@ def LM_TEST(Y, X, nocons=False):
         model = sm.OLS(e_hat_t, sm.add_constant(Q))
     fit = model.fit()
     # 自由度为1的卡方分布
-    print(f'LM({1})={fit.nobs * fit.rsquared}')
+    v = fit.nobs * fit.rsquared
+    print(f'LM({1})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=1) :.3f}')
     ###########################################
     # 二阶滞后
     ###########################################
@@ -62,7 +63,8 @@ def LM_TEST(Y, X, nocons=False):
         model = sm.OLS(e_hat_t, sm.add_constant(R))
     fit = model.fit()
     # 自由度为2的卡方分布
-    print(f'LM({2})={fit.nobs * fit.rsquared}')
+    v = fit.nobs * fit.rsquared
+    print(f'LM({2})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=2) :.3f}')
     ###########################################
     # 三阶滞后
     ###########################################
@@ -77,11 +79,21 @@ def LM_TEST(Y, X, nocons=False):
         model = sm.OLS(e_hat_t, sm.add_constant(S))
     fit = model.fit(use_t=True)
     # 自由度为3的卡方分布
-    print(f'LM({3})={fit.nobs * fit.rsquared}')
+    v = fit.nobs * fit.rsquared
+    print(f'LM({3})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
 
 
-# H0: 不存在序列相关性
-def LM_TEST_lags(Y, MODEL, lags=3):
+def ADF_LM_TEST_lags(Y, MODEL=3, lags=3):
+    '''
+    序列Y平稳性中的LM test函数
+    回归方程是Y自身，可以是高阶
+    其中 ADF的参数是MODEL
+    LM_TEST的参数是LAGS
+    :param Y: 滞后一阶代入回归方程中
+    :param MODEL: ADF的参数，选3个方程中的哪一个
+    :param lags: LM_TEST的参数相关性滞后几阶
+    :return:
+    '''
 
     Y_d1 = Y - Y.shift(-1)
     Y_lag1 = Y.shift(-1)
@@ -146,6 +158,45 @@ def LM_TEST_lags(Y, MODEL, lags=3):
             S = np.column_stack((S, e_hat_t_series[j]))
         model = sm.OLS(e_hat_t, S)
         fit = model.fit()
+        print(fit.summary())
         v = fit.nobs * fit.rsquared
         print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
     print('###########################################')
+
+# 回归方程是Y和X，可以是高阶
+def LM_TEST_lags(Y, X, nocons, lags=3):
+    print('LMTEST H0: 不存在序列相关性')
+    if len(Y) != len(X):
+        print(f'Y数据长度={len(Y)}')
+        print(f'X数据长度={len(X)}')
+        exit('回归数据Y和X长度不匹配')
+    ###########################################
+    # 主回归：得到残差
+    ###########################################
+    if nocons == False:
+        X = sm.add_constant(X)
+
+    model = sm.OLS(Y, X)
+    fit = model.fit()
+    e_hat_t = fit.resid
+
+    e_hat_t_series = [i for i in range(lags + 1)]
+    e_hat_t_series[0] = e_hat_t
+
+
+    for i in range(1, lags + 1):
+        print(f'# {i}阶滞后')
+
+        e_hat_t_series[i] = pd.Series(e_hat_t_series[i - 1]).shift(-1)
+        # 用0填充NaN
+        e_hat_t_series[i] = np.nan_to_num(e_hat_t_series[i], nan=0.0)
+        S = X
+        for j in range(1, i + 1):
+            S = np.column_stack((S, e_hat_t_series[j]))
+        model = sm.OLS(e_hat_t, S)
+        fit = model.fit()
+
+        v = fit.nobs * fit.rsquared
+        print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
+    print('###########################################')
+
