@@ -10,7 +10,7 @@ import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 import scipy as sp
-
+from scipy import stats
 # 在使用此格式定义函数时，指定有默认值的形式参数必须在所有没默认值参数的最后，否则会产生语法错误。
 # print(函数名.__defaults__) 可以打印所有默认参数
 # chi2_table函数：查chi2表
@@ -146,6 +146,6 @@ def LM_TEST_lags(Y, MODEL, lags=3):
             S = np.column_stack((S, e_hat_t_series[j]))
         model = sm.OLS(e_hat_t, S)
         fit = model.fit()
-
-        print(f'LM({i})={fit.nobs * fit.rsquared}')
+        v = fit.nobs * fit.rsquared
+        print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
     print('###########################################')
