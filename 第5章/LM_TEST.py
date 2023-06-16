@@ -82,6 +82,86 @@ def LM_TEST_lag3(Y, X, nocons=False):
     v = fit.nobs * fit.rsquared
     print(f'LM({3})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
 
+# 回归方程是Y和X 最多3阶, 而且还显示出残差项的系数是否显著
+# 可用于教材p163页
+def LM_TEST_lag3_e_info(Y, X, nocons=False):
+
+        print('LMTEST H0: 不存在序列相关性')
+        if len(Y) != len(X):
+            print(f'Y数据长度={len(Y)}')
+            print(f'X数据长度={len(X)}')
+            exit('回归数据Y和X长度不匹配')
+        ###########################################
+        # 主回归：得到残差
+        ###########################################
+        if nocons:
+            model = sm.OLS(Y, X)
+        else:
+            model = sm.OLS(Y, sm.add_constant(X))
+        fit = model.fit()
+        e_hat_t = fit.resid
+        ###########################################
+        # 一阶滞后
+        ###########################################
+        e_hat_t_minus_1 = e_hat_t.shift(-1)
+        # 用0填充NaN
+        e_hat_t_minus_1 = np.nan_to_num(e_hat_t_minus_1, nan=0.0)
+
+        Q = np.column_stack((X, e_hat_t_minus_1))
+        if nocons:
+            model = sm.OLS(e_hat_t, Q)
+        else:
+            model = sm.OLS(e_hat_t, sm.add_constant(Q))
+        fit = model.fit(use_t=True)
+        # 显示系数是否显著
+        print('------残差1阶滞后项系数------')
+        print(f'e({1})={fit.params[-1] :.3f} p={fit.pvalues[-1] :.3f}')
+        # 自由度为1的卡方分布
+        v = fit.nobs * fit.rsquared
+        print(f'LM({1})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=1) :.3f}')
+        ###########################################
+        # 二阶滞后
+        ###########################################
+        e_hat_t_minus_2 = pd.Series(e_hat_t_minus_1).shift(-1)
+        # 用0填充NaN
+        e_hat_t_minus_2 = np.nan_to_num(e_hat_t_minus_2, nan=0.0)
+
+        R = np.column_stack((X, e_hat_t_minus_1, e_hat_t_minus_2))
+        if nocons:
+            model = sm.OLS(e_hat_t, R)
+        else:
+            model = sm.OLS(e_hat_t, sm.add_constant(R))
+        fit = model.fit(use_t=True)
+        # 显示系数是否显著
+        print('------残差2阶滞后项系数------')
+        print(f'e({1})={fit.params[-2] :.3f} p={fit.pvalues[-2] :.3f}')
+        print(f'e({2})={fit.params[-1] :.3f} p={fit.pvalues[-1] :.3f}')
+        # 自由度为2的卡方分布
+        v = fit.nobs * fit.rsquared
+        print(f'LM({2})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=2) :.3f}')
+        ###########################################
+        # 三阶滞后
+        ###########################################
+        e_hat_t_minus_3 = pd.Series(e_hat_t_minus_2).shift(-1)
+        # 用0填充NaN
+        e_hat_t_minus_3 = np.nan_to_num(e_hat_t_minus_3, nan=0.0)
+
+        S = np.column_stack((X, e_hat_t_minus_1, e_hat_t_minus_2, e_hat_t_minus_3))
+        if nocons:
+            model = sm.OLS(e_hat_t, S)
+        else:
+            model = sm.OLS(e_hat_t, sm.add_constant(S))
+        fit = model.fit(use_t=True)
+        # 显示系数是否显著
+        print('------残差3阶滞后项系数------')
+        print(f'e({1})={fit.params[-3] :.3f} p={fit.pvalues[-3] :.3f}')
+        print(f'e({2})={fit.params[-2] :.3f} p={fit.pvalues[-2] :.3f}')
+        print(f'e({3})={fit.params[-1] :.3f} p={fit.pvalues[-1] :.3f}')
+        # 自由度为3的卡方分布
+        v = fit.nobs * fit.rsquared
+        print(f'LM({3})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
+
+
 # 回归方程是Y和X，可以是高阶
 def LM_TEST_lagsN(Y, X, nocons, lags=3):
     '''
