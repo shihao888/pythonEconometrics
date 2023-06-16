@@ -108,6 +108,8 @@ def ADF_LM_TEST_lags(Y, MODEL=3, adf_lags=1, lmlags=3):
     print('###########################################')
 
 
+# 下面这个函数是用来检验协整性的
+# 把Y用e_d1代替就可以检验出协整
 def ADF_LM_TEST_lags(Y, MODEL=3, adf_lags=1):
     """
     ADF1 表示 Y滞后1阶
