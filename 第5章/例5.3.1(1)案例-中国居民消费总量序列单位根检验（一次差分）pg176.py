@@ -50,7 +50,7 @@ fit = model.fit()  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d2', yname='Y_d2',
                   xname=['const', 'T', 'Y_d1_lag1', 'Y_d2_lag1']))
 print('model3 H0: 存在单位根。请查看Y_d1_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d2, X)
+mylmtest.LM_TEST_lag3(Y_d2, X)
 
 # 模型2：常数项+Y滞后项
 X = np.column_stack((Y_d1_lag1, Y_d2_lag1))
@@ -60,7 +60,7 @@ fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d2', yname='Y_d2',
                   xname=['const', 'Y_d1_lag1', 'Y_d2_lag1']))
 print('model2 H0: 存在单位根。请查看Y_d1_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d2, X)
+mylmtest.LM_TEST_lag3(Y_d2, X)
 
 # 模型1：没有常数项和时间趋势项，仅有Y滞后项
 X = np.column_stack((Y_d1_lag1, Y_d2_lag1))
@@ -70,5 +70,5 @@ fit = model.fit(use_t=True)  # not using HC0,HC1 etc.
 print(fit.summary(title='Y_d2', yname='Y_d2',
                   xname=['Y_d1_lag1', 'Y_d2_lag1']))
 print('model1 H0: 存在单位根。请查看Y_d1_lag1的显著性看是否拒绝H0')
-mylmtest.LM_TEST(Y_d2, X, nocons=True)
+mylmtest.LM_TEST_lag3(Y_d2, X, nocons=True)
 

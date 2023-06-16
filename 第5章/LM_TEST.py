@@ -48,7 +48,7 @@ def LM_TEST_lag3(Y, X, nocons=False):
     fit = model.fit()
     # 自由度为1的卡方分布
     v = fit.nobs * fit.rsquared
-    print(f'LM({1})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=1) :.3f}')
+    print(f'LM({1})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=1) :.3f}')
     ###########################################
     # 二阶滞后
     ###########################################
@@ -64,7 +64,7 @@ def LM_TEST_lag3(Y, X, nocons=False):
     fit = model.fit()
     # 自由度为2的卡方分布
     v = fit.nobs * fit.rsquared
-    print(f'LM({2})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=2) :.3f}')
+    print(f'LM({2})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=2) :.3f}')
     ###########################################
     # 三阶滞后
     ###########################################
@@ -80,11 +80,12 @@ def LM_TEST_lag3(Y, X, nocons=False):
     fit = model.fit(use_t=True)
     # 自由度为3的卡方分布
     v = fit.nobs * fit.rsquared
-    print(f'LM({3})={fit.nobs * fit.rsquared} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
+    print(f'LM({3})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=3) :.3f}')
 
 
-def ADF_LM_TEST_lags(Y, MODEL=3, lags=3):
+def ADF1_LM_TEST_lags(Y, MODEL=3, lags=3):
     '''
+    ADF1 表示 Y滞后1阶
     序列Y平稳性中的LM test函数
     回归方程是Y自身，可以是高阶
     其中 ADF的参数是MODEL
@@ -158,7 +159,7 @@ def ADF_LM_TEST_lags(Y, MODEL=3, lags=3):
             S = np.column_stack((S, e_hat_t_series[j]))
         model = sm.OLS(e_hat_t, S)
         fit = model.fit()
-        print(fit.summary())
+
         v = fit.nobs * fit.rsquared
         print(f'LM({i})={fit.nobs * fit.rsquared :.3f} p={1 - stats.chi2.cdf(v, df=i) :.3f}')
     print('###########################################')

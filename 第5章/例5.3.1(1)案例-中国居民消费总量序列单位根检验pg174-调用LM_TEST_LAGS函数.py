@@ -25,6 +25,6 @@ df.reset_index(drop=True, inplace=True)  # 把索引重新排一下
 
 Y = df.iloc[:, 6].astype(np.float64)
 
-mylmtest.LM_TEST_lags(Y, MODEL=3, lags=3)  # INTERCEPTION + TIME TREND
-mylmtest.LM_TEST_lags(Y, MODEL=2, lags=3)  # NO TIME TREND
-mylmtest.LM_TEST_lags(Y, MODEL=1, lags=3)  # NO CONST
+mylmtest.ADF1_LM_TEST_lags(Y, MODEL=3, lags=3)  # INTERCEPTION + TIME TREND
+mylmtest.ADF1_LM_TEST_lags(Y, MODEL=2, lags=3)  # NO TIME TREND
+mylmtest.ADF1_LM_TEST_lags(Y, MODEL=1, lags=3)  # NO CONST
